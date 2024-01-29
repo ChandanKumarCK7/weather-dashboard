@@ -1,0 +1,4 @@
+Consumers\RabbitMQConsumer.class
+Application.class
+Service\Cache.class
+enums\RabbitQueueEnums.class
