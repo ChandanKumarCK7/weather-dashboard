@@ -3,28 +3,47 @@ package com.Consumers;
 
 
 
+import com.Service.RapidStore;
 import com.enums.RabbitQueueEnums;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
-import org.springframework.boot.configurationprocessor.json.JSONStringer;
 import org.springframework.stereotype.Component;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 
 @Component
 public class RabbitMQConsumer {
 
-//    private final Queue myQueue;
-//
-//    @Autowired
-//    public RabbitMQConsumer(@Qualifier(RabbitQueueEnums.temperature_queue) Queue queue){
-//        this.myQueue = queue;
-//    }
+
+    JSONObject latestMessage;
+    Map<String, Map<String, Object>> latestWeatherData;
+
+    @Autowired
+    RapidStore rapidStore;
+
+    public JSONObject getLatestMessage() {
+        return latestMessage;
+    }
+
+    public void setLatestMessage(JSONObject message){
+        this.latestMessage= message;
+    }
+
+    public Map<String, Map<String, Object>> getLatestWeatherData() {
+        return latestWeatherData;
+    }
+
+    public void setLatestWeatherData(Map<String, Map<String, Object>> latestWeatherData) {
+        this.latestWeatherData = latestWeatherData;
+    }
+
+
 
     @PostConstruct
     public void postConstruct(){
@@ -37,15 +56,27 @@ public class RabbitMQConsumer {
         System.out.println("---------------");
 
         // convert to proper hashmap and json that can be reused.
+
         ObjectMapper objectMapper = new ObjectMapper();
-        Map<String, Object> hashMap= objectMapper.readValue(message, Map.class);
+        TypeReference<Map<String, Map<String, Object>>> typeReference = new TypeReference<Map<String, Map<String, Object>>>() {};
+        Map<String, Map<String, Object>> hashMap = objectMapper.readValue(message, new TypeReference<Map<String, Map<String, Object>>>() {});
 
         System.out.println("hashMap "+hashMap);
 
         // convert string to a json object
-        JSONObject o = new JSONObject(message);
 
-        System.out.println("jsonObject "+ o.toString());
+        JSONObject jsonObject = new JSONObject(message.toString());
+
+        System.out.println("jsonObject "+ jsonObject.toString());
+
+        setLatestMessage(jsonObject);
+        setLatestWeatherData(hashMap);
+
+        rapidStore.storeInBackgroundWithHashMap( hashMap);
+
+
+
+
 
 
     }
