@@ -1,5 +1,10 @@
 package fetcher
 
+
+
+
+
+
 import (
 	"encoding/json"
 	"fmt"
@@ -45,8 +50,12 @@ func (tf *TemperatureFetcher) FetchTemperature() string {
 
 	fetchedWeatherData := tf.weatherFetcher(tf.Cities)
 	fmt.Println("fetchedWeatherData", fetchedWeatherData)
-	jsonData := toJson(fetchedWeatherData)
-	fmt.Println("fetchedWeatherData in JSON format ", jsonData)
+
+	jsonData := ToString(fetchedWeatherData)
+	fmt.Println("string format of jsonData ", jsonData)
+
+	// jsonData := toJson(fetchedWeatherData)
+	// fmt.Println("fetchedWeatherData in JSON format ", jsonData)
 
 	return jsonData
 }
@@ -54,8 +63,26 @@ func (tf *TemperatureFetcher) FetchTemperature() string {
 func (tf *TemperatureFetcher) SetCities(cities []string) {
 	tf.Cities = cities
 }
+
+// TODO make that look simple please keep key value pair remove nested
 func ToString(wd []WeatherData) string {
-	result := "[\n"
+	result := "{\n"
+	for _, data := range wd {
+		result += fmt.Sprintf("   \"%s\" : {\"temp\": %.2f, \"humidity\": %d, \"fetched_time\": %d, \"fetched_time_str\": \"%s\"},\n",
+			data.Name,
+			data.CityData.Main.Temp,
+			data.CityData.Main.Humidity,
+			data.CityData.FetchedTime,
+			data.CityData.FetchedTimeStr,
+		)
+	}
+	result = result[:len(result)-2] + "\n}\n"
+	return result
+}
+
+
+func ToStringOfBackup(wd []WeatherData) string {
+	result := "{\n"
 	for _, data := range wd {
 		result += fmt.Sprintf("   \"%s\" :{ \"main\": {\"temp\": %.2f, \"humidity\": %d}, \"fetched_time\": %d, \"fetched_time_str\": \"%s\"},\n",
 			data.Name,
@@ -65,7 +92,7 @@ func ToString(wd []WeatherData) string {
 			data.CityData.FetchedTimeStr,
 		)
 	}
-	result += "]\n"
+	result = result[:len(result)-2] + "\n}\n"
 	return result
 }
 
